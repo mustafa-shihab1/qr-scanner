@@ -1,29 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_scanner/qr_scanner_view.dart';
 
-class QrResultView extends StatelessWidget {
-  const QrResultView({Key? key}) : super(key: key);
+class QrResultView extends StatefulWidget {
 
+  final String? text;
+
+  const QrResultView({
+    super.key,
+    required this.text
+  });
+
+  @override
+  State<QrResultView> createState() => _QrResultViewState();
+}
+
+class _QrResultViewState extends State<QrResultView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('QR Result')),
+      appBar: AppBar(title: const Text('QR Result'),
+      leading: IconButton(
+        onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const QrScannerView())),
+        icon: const Icon(Icons.arrow_back),
+        color: Colors.white,
+      )
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            SizedBox(
-              width: 170,
-              height: 170,
+            Card(
+              color: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: QrImageView(
-                  data: 'https://www.google.com',
+                  data: widget.text!,
                   version: QrVersions.auto,
-                  size: 170,
+                  size: 200,
+                  embeddedImageStyle: const QrEmbeddedImageStyle(
+                    size: Size(100, 100),
+                  )
                 ),
               ),
             ),
@@ -34,9 +61,13 @@ class QrResultView extends StatelessWidget {
               style: TextStyle(fontSize: 20, color: Colors.grey[800]),
             ),
             const SizedBox(height: 10),
-            Text(
-              'https://www.google.com',
-              style: TextStyle(fontSize: 20, color: Colors.grey[600]),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Text(
+                widget.text!,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600],),
+                maxLines: 2,
+              ),
             ),
             //button to copy the result
             const SizedBox(height: 20),
@@ -49,8 +80,12 @@ class QrResultView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              onPressed: () {
-
+              onPressed: () async{
+                await Clipboard.setData(ClipboardData(text: widget.text!));
+                ScaffoldMessenger.of(context).
+                showSnackBar(
+                  const SnackBar(content: Text('Copied to Clipboard'),),
+                );
               },
               child: const Text(
                   'Copy',
